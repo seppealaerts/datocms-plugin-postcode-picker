@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import type { RenderConfigScreenCtx } from "datocms-plugin-sdk";
-import { Canvas, TextField, FieldGroup, Button } from "datocms-react-ui";
+import {
+  Canvas,
+  TextField,
+  FieldGroup,
+  Button,
+  SwitchField,
+} from "datocms-react-ui";
 
 type Props = {
   ctx: RenderConfigScreenCtx;
@@ -9,11 +15,14 @@ type Props = {
 type PluginParameters = {
   geonamesUsername?: string;
   country?: string;
+  groupCitiesByPostcode?: boolean;
 };
 
 export default function ConfigScreen({ ctx }: Props) {
   const [geonamesUsername, setGeonamesUsername] = useState<string>("");
   const [country, setCountry] = useState<string>("BE");
+  const [groupCitiesByPostcode, setGroupCitiesByPostcode] =
+    useState<boolean>(false);
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -24,6 +33,7 @@ export default function ConfigScreen({ ctx }: Props) {
       | undefined;
     setGeonamesUsername(parameters?.geonamesUsername || "");
     setCountry(parameters?.country || "BE");
+    setGroupCitiesByPostcode(parameters?.groupCitiesByPostcode ?? false);
     setHasChanges(false);
   }, [ctx.plugin]);
 
@@ -35,7 +45,12 @@ export default function ConfigScreen({ ctx }: Props) {
       | undefined;
     const currentUsername = parameters?.geonamesUsername || "";
     const currentCountry = parameters?.country || "BE";
-    setHasChanges(value !== currentUsername || country !== currentCountry);
+    const currentGroupCities = parameters?.groupCitiesByPostcode ?? false;
+    setHasChanges(
+      value !== currentUsername ||
+        country !== currentCountry ||
+        groupCitiesByPostcode !== currentGroupCities
+    );
   };
 
   const handleCountryChange = (value: string) => {
@@ -46,8 +61,26 @@ export default function ConfigScreen({ ctx }: Props) {
       | undefined;
     const currentUsername = parameters?.geonamesUsername || "";
     const currentCountry = parameters?.country || "BE";
+    const currentGroupCities = parameters?.groupCitiesByPostcode ?? false;
     setHasChanges(
-      geonamesUsername !== currentUsername || newCountry !== currentCountry
+      geonamesUsername !== currentUsername ||
+        newCountry !== currentCountry ||
+        groupCitiesByPostcode !== currentGroupCities
+    );
+  };
+
+  const handleGroupCitiesChange = (value: boolean) => {
+    setGroupCitiesByPostcode(value);
+    const parameters = ctx.plugin.attributes.parameters as
+      | PluginParameters
+      | undefined;
+    const currentUsername = parameters?.geonamesUsername || "";
+    const currentCountry = parameters?.country || "BE";
+    const currentGroupCities = parameters?.groupCitiesByPostcode ?? false;
+    setHasChanges(
+      geonamesUsername !== currentUsername ||
+        country !== currentCountry ||
+        value !== currentGroupCities
     );
   };
 
@@ -58,6 +91,7 @@ export default function ConfigScreen({ ctx }: Props) {
       await ctx.updatePluginParameters({
         geonamesUsername: geonamesUsername || undefined,
         country: country || "BE",
+        groupCitiesByPostcode: groupCitiesByPostcode ? true : undefined,
       });
       setHasChanges(false);
       ctx.notice("Settings saved successfully!");
@@ -89,6 +123,14 @@ export default function ConfigScreen({ ctx }: Props) {
           onChange={handleCountryChange}
           placeholder="BE"
           hint="ISO 3166-1 alpha-2 country code (e.g., BE for Belgium, NL for Netherlands, FR for France). Defaults to BE if not set."
+        />
+        <SwitchField
+          id="group-cities"
+          name="group-cities"
+          label="Group cities with same postcode"
+          value={groupCitiesByPostcode}
+          onChange={handleGroupCitiesChange}
+          hint="When enabled, multiple cities with the same postcode will be grouped into a single option (e.g., 'City1 / City2 / City3 (postcode)'). When disabled, each city-postcode combination appears as a separate option."
         />
         <Button
           buttonType="primary"

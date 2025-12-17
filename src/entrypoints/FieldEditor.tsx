@@ -16,11 +16,17 @@ type SelectOption = {
 
 export default function FieldEditor({ ctx }: Props) {
   const pluginParameters = ctx.plugin.attributes.parameters as
-    | { geonamesUsername?: string; country?: string }
+    | {
+        geonamesUsername?: string;
+        country?: string;
+        groupCitiesByPostcode?: boolean;
+      }
     | undefined;
 
   const username = pluginParameters?.geonamesUsername || "demo";
   const country = pluginParameters?.country || "BE";
+  const groupCitiesByPostcode =
+    pluginParameters?.groupCitiesByPostcode ?? false;
 
   // Load current selected values from field
   const selectedValues = useMemo(() => {
@@ -42,14 +48,26 @@ export default function FieldEditor({ ctx }: Props) {
         postcodes = (fieldValue as any).items;
       }
 
-      return postcodes.map((item) => ({
-        label: `${item.city} (${item.postcode})`,
-        value: item,
-      }));
+      return postcodes.map((item) => {
+        // If grouping is enabled and city contains comma-separated cities, format with " / "
+        if (groupCitiesByPostcode && item.city.includes(", ")) {
+          const cities = item.city.split(", ").filter(Boolean);
+          const cityLabel = cities.join(" / ");
+          return {
+            label: `${cityLabel} (${item.postcode})`,
+            value: item,
+          };
+        }
+        // Otherwise, use the original format
+        return {
+          label: `${item.city} (${item.postcode})`,
+          value: item,
+        };
+      });
     } catch (e) {
       return [];
     }
-  }, [ctx.formValues[ctx.fieldPath]]);
+  }, [ctx.formValues[ctx.fieldPath], groupCitiesByPostcode]);
 
   // Load options from API based on input
   const loadOptions = async (inputValue: string): Promise<SelectOption[]> => {
@@ -59,6 +77,35 @@ export default function FieldEditor({ ctx }: Props) {
 
     try {
       const postcodes = await searchPostcodes(inputValue, username, country);
+
+      // If grouping is enabled, group by postcode and combine cities
+      if (groupCitiesByPostcode) {
+        const groupedByPostcode = new Map<string, string[]>();
+
+        postcodes.forEach((item) => {
+          const cities = groupedByPostcode.get(item.postcode) || [];
+          if (!cities.includes(item.city)) {
+            cities.push(item.city);
+          }
+          groupedByPostcode.set(item.postcode, cities);
+        });
+
+        // Create options with combined city labels
+        return Array.from(groupedByPostcode.entries()).map(
+          ([postcode, cities]) => {
+            const cityLabel = cities.join(" / ");
+            return {
+              label: `${cityLabel} (${postcode})`,
+              value: {
+                postcode,
+                city: cities.join(", "), // Store all cities comma-separated in the value
+              },
+            };
+          }
+        );
+      }
+
+      // If grouping is disabled, return one option per city-postcode combination
       return postcodes.map((item) => ({
         label: `${item.city} (${item.postcode})`,
         value: item,

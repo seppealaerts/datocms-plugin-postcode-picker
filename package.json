@@ -1,9 +1,8 @@
 {
   "name": "datocms-plugin-postcode-picker",
-  "description": "A DatoCMS field extension for selecting multiple postcodes with autocomplete search using GeoNames API",
+  "version": "0.1.2",
   "homepage": "https://github.com/seppealaerts/datocms-plugin-postcode-picker",
-  "private": false,
-  "version": "0.1.0",
+  "description": "A DatoCMS field extension for selecting multiple postcodes with autocomplete search using GeoNames API",
   "author": "Seppe Alaerts",
   "license": "MIT",
   "type": "module",
@@ -13,7 +12,7 @@
   "datoCmsPlugin": {
     "title": "Postcode Picker",
     "coverImage": "docs/cover-1200x800.png",
-    "previewImage": "docs/preview.mp4",
+    "previewImage": "docs/cover-1200x800.png",
     "entryPoint": "dist/index.html",
     "permissions": []
   },
@@ -34,6 +33,7 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@types/node": "^25.0.3",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",

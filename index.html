@@ -1,15 +1,471 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A DatoCMS field extension plugin that allows users to select multiple postcodes with an autocomplete search interface using GeoNames API."
+    />
+    <title>Postcode Picker - DatoCMS Plugin</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Signika:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>DatoCMS Plugin</title>
-</head>
+      body {
+        font-family: "Signika", -apple-system, BlinkMacSystemFont, "Segoe UI",
+          Roboto, "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.6;
+        color: #000;
+        background: white;
+        min-height: 100vh;
+        padding: 2rem 1rem;
+      }
 
-<body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.tsx"></script>
-</body>
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
 
+      .header {
+        background: black;
+        color: white;
+        padding: 3rem 2rem;
+        text-align: center;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+      }
+
+      .header p {
+        font-size: 1.2rem;
+        opacity: 0.95;
+        font-weight: 300;
+      }
+
+      .content {
+        padding: 2rem;
+        font-weight: 300;
+      }
+
+      .section {
+        margin-bottom: 2.5rem;
+      }
+
+      .section h2 {
+        color: #000;
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid #000;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+      }
+
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1.5rem;
+      }
+
+      .feature {
+        padding: 1.5rem;
+        background: white;
+        border-radius: 10px;
+        border: 1px solid #000;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .feature:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .feature h3 {
+        color: #000;
+        margin-bottom: 0.5rem;
+        font-size: 1.1rem;
+        font-weight: 500;
+      }
+
+      .feature p {
+        color: #000;
+        font-size: 0.95rem;
+        font-weight: 300;
+      }
+
+      .emoji {
+        font-size: 1.5rem;
+        margin-right: 0.5rem;
+      }
+
+      .code-block {
+        background: #000;
+        color: white;
+        padding: 1rem;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
+        font-size: 0.9rem;
+        margin: 1rem 0;
+        font-weight: 400;
+      }
+
+      .code-block code {
+        color: white;
+      }
+
+      .button {
+        display: inline-block;
+        padding: 0.75rem 1.5rem;
+        background: black;
+        color: white;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+        letter-spacing: 0.01em;
+      }
+
+      .button:hover {
+        background: #333;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      .button-secondary {
+        background: black;
+      }
+
+      .button-secondary:hover {
+        background: #333;
+      }
+
+      .buttons {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        background: white;
+        color: black;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        margin-left: 0.5rem;
+        font-weight: 400;
+      }
+
+      ul {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      ul li {
+        padding: 0.5rem 0;
+        padding-left: 1.5rem;
+        position: relative;
+      }
+
+      ul li:before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #000;
+        font-weight: bold;
+      }
+
+      .footer {
+        background: white;
+        padding: 1.5rem 2rem;
+        text-align: center;
+        color: #000;
+        border-top: 1px solid #000;
+        font-weight: 300;
+      }
+
+      .footer a {
+        color: #000;
+        text-decoration: none;
+      }
+
+      .footer a:hover {
+        text-decoration: underline;
+      }
+
+      @media (max-width: 768px) {
+        .header h1 {
+          font-size: 2rem;
+        }
+
+        .header p {
+          font-size: 1rem;
+        }
+
+        .features {
+          grid-template-columns: 1fr;
+        }
+
+        .buttons {
+          flex-direction: column;
+        }
+
+        .button {
+          width: 100%;
+          text-align: center;
+        }
+      }
+
+      /* Hide documentation when plugin is running in DatoCMS */
+      .documentation {
+        display: block;
+      }
+    </style>
+    <script>
+      // Hide documentation immediately when running in DatoCMS (detected by iframe)
+      // DatoCMS loads plugins in iframes, so we check if we're in one
+      (function () {
+        try {
+          // Check if we're in an iframe (DatoCMS loads plugins in iframes)
+          var inIframe =
+            window.self !== window.top || window.parent !== window.self;
+          if (inIframe) {
+            // Add style to hide documentation
+            var style = document.createElement("style");
+            style.textContent = ".documentation { display: none !important; }";
+            document.head.appendChild(style);
+          }
+        } catch (e) {
+          // If we can't check (cross-origin), assume we're in DatoCMS and hide it
+          var style = document.createElement("style");
+          style.textContent = ".documentation { display: none !important; }";
+          document.head.appendChild(style);
+        }
+      })();
+    </script>
+  </head>
+
+  <body>
+    <div class="container documentation">
+      <div class="header">
+        <h1>📍 Postcode Picker</h1>
+        <p>
+          A powerful field extension for selecting postcodes with autocomplete
+          search
+        </p>
+        <span class="badge">v__VERSION__</span>
+      </div>
+
+      <div class="content">
+        <div class="section">
+          <h2>About</h2>
+          <p>
+            Postcode Picker is a custom DatoCMS field extension plugin that
+            allows content editors to easily select multiple postcodes using an
+            intuitive autocomplete search interface. Powered by the GeoNames
+            API, it provides real-time search results for postcodes and cities
+            worldwide.
+          </p>
+        </div>
+
+        <div class="section">
+          <h2>Features</h2>
+          <div class="features">
+            <div class="feature">
+              <h3><span class="emoji">🔍</span>Autocomplete Search</h3>
+              <p>
+                Type to search for postcodes or city names with instant results
+              </p>
+            </div>
+            <div class="feature">
+              <h3><span class="emoji">🏷️</span>Multiple Selection</h3>
+              <p>
+                Select multiple postcodes with an accessible multi-select
+                interface
+              </p>
+            </div>
+            <div class="feature">
+              <h3><span class="emoji">🌍</span>Configurable Country</h3>
+              <p>
+                Set the country code in plugin settings (defaults to Belgium)
+              </p>
+            </div>
+            <div class="feature">
+              <h3><span class="emoji">🔑</span>GeoNames Integration</h3>
+              <p>Optional GeoNames username for higher rate limits</p>
+            </div>
+            <div class="feature">
+              <h3><span class="emoji">📦</span>City Grouping</h3>
+              <p>
+                Optionally group multiple cities with the same postcode into a
+                single option
+              </p>
+            </div>
+            <div class="feature">
+              <h3><span class="emoji">🌐</span>API-Based</h3>
+              <p>
+                Uses GeoNames API to fetch postcode data (no hardcoded data)
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Installation</h2>
+          <ol style="padding-left: 1.5rem; margin-top: 1rem">
+            <li style="margin-bottom: 0.5rem">
+              Build the plugin:
+              <div class="code-block">
+                <code>npm install<br />npm run build</code>
+              </div>
+            </li>
+            <li style="margin-bottom: 0.5rem">
+              Install in your DatoCMS project:
+              <ul style="margin-top: 0.5rem">
+                <li>Go to Settings → Plugins</li>
+                <li>Click "Add a plugin" → "Install from URL"</li>
+                <li>Or upload the built plugin</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+
+        <div class="section">
+          <h2>Usage</h2>
+          <ol style="padding-left: 1.5rem; margin-top: 1rem">
+            <li style="margin-bottom: 1rem">
+              <strong>Configure the plugin:</strong>
+              <ul style="margin-top: 0.5rem">
+                <li>Go to Settings → Plugins → Postcode Picker</li>
+                <li>
+                  Enter your GeoNames username (optional, for higher rate
+                  limits)
+                </li>
+                <li>
+                  Set the country code (ISO 3166-1 alpha-2, e.g., BE, NL, FR)
+                </li>
+                <li>Toggle "Group cities with same postcode" if desired</li>
+                <li>Click "Save"</li>
+              </ul>
+            </li>
+            <li style="margin-bottom: 1rem">
+              <strong>Add the field extension:</strong>
+              <ul style="margin-top: 0.5rem">
+                <li>Add a new <strong>JSON</strong> field to your model</li>
+                <li>In field settings, scroll to "Field extensions"</li>
+                <li>
+                  Click "Add field extension" and select "Postcode Picker"
+                </li>
+              </ul>
+            </li>
+            <li>
+              <strong>Use the picker:</strong>
+              <ul style="margin-top: 0.5rem">
+                <li>Type to search for postcodes or city names</li>
+                <li>Select multiple postcodes from the dropdown</li>
+                <li>Selected postcodes are displayed as chips</li>
+              </ul>
+            </li>
+          </ol>
+        </div>
+
+        <div class="section">
+          <h2>Data Format</h2>
+          <p>Selected postcodes are stored as a JSON string:</p>
+          <div class="code-block">
+            <code
+              >[<br />
+              { "postcode": "1000", "city": "Brussels" },<br />
+              { "postcode": "2000", "city": "Antwerp" }<br />
+              ]</code
+            >
+          </div>
+          <p style="margin-top: 1rem; color: #000; font-size: 0.95rem">
+            When city grouping is enabled, multiple cities are stored
+            comma-separated in the city field.
+          </p>
+        </div>
+
+        <div class="section">
+          <h2>GeoNames API</h2>
+          <p>
+            The plugin uses the GeoNames API (free tier). For higher rate
+            limits, you can configure your GeoNames username in the plugin
+            settings.
+          </p>
+          <p style="margin-top: 0.5rem">
+            <strong>Get a free GeoNames account:</strong>
+            <a
+              href="https://www.geonames.org/login"
+              target="_blank"
+              rel="noopener noreferrer"
+              >https://www.geonames.org/login</a
+            >
+          </p>
+        </div>
+
+        <div class="buttons">
+          <a
+            href="https://github.com/seppealaerts/datocms-plugin-postcode-picker"
+            class="button"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            View on GitHub
+          </a>
+          <a
+            href="https://www.datocms.com"
+            class="button button-secondary"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Learn about DatoCMS
+          </a>
+        </div>
+      </div>
+
+      <div class="footer">
+        <p>
+          Created by
+          <a
+            href="https://github.com/seppealaerts"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Seppe Alaerts</a
+          >
+          • Licensed under
+          <a
+            href="https://opensource.org/licenses/MIT"
+            target="_blank"
+            rel="noopener noreferrer"
+            >MIT</a
+          >
+        </p>
+      </div>
+    </div>
+
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

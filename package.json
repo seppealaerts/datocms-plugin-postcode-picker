@@ -1,6 +1,6 @@
 {
   "name": "datocms-plugin-postcode-picker",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "homepage": "https://github.com/seppealaerts/datocms-plugin-postcode-picker",
   "description": "A DatoCMS field extension for selecting multiple postcodes with autocomplete search using GeoNames API",
   "author": "Seppe Alaerts",
